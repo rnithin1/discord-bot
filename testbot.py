@@ -55,7 +55,8 @@ async def on_message(message):
 
     print(message.content)
     print(type(message.content))
-    if message.attachments:
+    if message.attachments and not message.author.bot:
+        print('{0.author}'.format(message))
         print(message.attachments)
         extension = message.attachments[0]['url'].split(".")[-1]
         if extension.lower() in extensions:
