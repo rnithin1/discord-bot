@@ -11,3 +11,4 @@ Our Discord bot.
 - Message context/sentiment detection
 - Sentence translation
 - Image/video manipulation
+- Song manipulation/covering
