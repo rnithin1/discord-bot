@@ -19,7 +19,7 @@ def make_name():
   if randint(0, 2) == 2:
     title = caesar[randint(0,len(caesar) - 1)] + " "
   if first == second:
-    first = praenomen[randint(0, len(praenomen) - 1)]
+    first = praenomen[randint(0, len(praenomen) - 2)]
   naam = title + first + second + " " + name + " " + caste
   return naam.title().strip()
 
