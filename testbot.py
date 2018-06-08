@@ -102,6 +102,19 @@ async def on_message(message):
         path = "./imgs/" + imgString
         await client.send_file(message.channel, path)
 
+    if message.content == "!help":
+        msg = '''
+            !generatesikh -- Generate random Sikh name
+            !lastmessage -- Returns user's last message
+            !markovmessage -- Generates random sentence from past messages
+            !randomimage -- Returns a not-so-random image
+            !seamcarve [numPixels] [horizontal | yN] -- Seamcarves last image numPixels
+            !translate [source] [dest] [message] -- Translates [message] from [source] to [dest] language
+            !cachedimage -- Returns last (cached) image
+            '''
+        await client.send_message(message.channel, msg)
+
+
     if message.content.startswith("!seamcarve"):
         cmd = message.content.split(" ")
         if len(cmd) != 3 or not cmd[1].isdigit() \
