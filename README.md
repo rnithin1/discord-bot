@@ -12,3 +12,4 @@ Our Discord bot.
 - Message context/sentiment detection
 - Image/video manipulation
 - Song manipulation/covering
+- Chess
