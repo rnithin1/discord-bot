@@ -1,3 +1,4 @@
+from googletrans import Translator
 import discord
 import sikhgenerator
 import re
@@ -11,11 +12,13 @@ import asyncio
 TOKEN = open("privatekey.txt", "r").read().split("\n")[0]
 
 client = discord.Client()
+translator = Translator() # Uses Google trans, may switch to Apertium
 
 messages = dict()
 markov = list()
-cache = list()
 extensions = ['png', 'jpg', 'jpeg', 'gif']
+langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
+        open("iso639-1-codes.txt", "r").read().split("\n")))
 
 def mark():
     import numpy as np
@@ -110,6 +113,34 @@ async def on_message(message):
             subprocess.call(['java', '-jar', 'seamcarve.jar', 'cache/'\
                     + os.listdir("./cache")[0], cmd[1], cmd[2]])
             await client.send_file(message.channel, "output.png")
+
+    if message.content.startswith("!translate"):
+        cmd = message.content.split(" ")
+        if len(cmd) < 4 or cmd[1].lower().title() not in \
+                list(langs.keys()) or cmd[2].lower().title() not in \
+                list(langs.keys()):
+            msg = "Usage: !translate [source] [dest] [message]"
+            await client.send_message(message.channel, msg)
+        else:
+            msg = " ".join(cmd[3:])
+            print(msg)
+            msg = msg.lower().replace('\n', ' ')
+            msg = re.sub('([a-zA-Z])', \
+                    lambda x: x.groups()[0].upper(), msg, 1)
+            msg = re.sub(" \d+", " ", msg)
+            try:
+                print(msg.lower())
+                print(langs[cmd[1].title()])
+                print(langs[cmd[2].title()])
+                msg = translator.translate(msg.lower(), \
+                        src=langs[cmd[1].title()], \
+                        dest=langs[cmd[2].title()]).text
+                print(msg)
+            except:
+                msg = "ERROR: src/dest language unavailable"
+                msg = translator.translate('안녕하세요'.lower(), src='ko', dest='ja').text
+            await client.send_message(message.channel, msg)
+
 
     if message.content.startswith("!cachedimage"):
         await client.send_file(message.channel, \
