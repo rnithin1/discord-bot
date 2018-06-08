@@ -5,10 +5,10 @@ Our Discord bot.
 - Markov chain sentence generation
 - Sikh name generation
 - Image seamcarving 
+- Sentence translation
 
 ### Goals
 - Message summarization
 - Message context/sentiment detection
-- Sentence translation
 - Image/video manipulation
 - Song manipulation/covering
