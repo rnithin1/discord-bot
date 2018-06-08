@@ -104,6 +104,7 @@ async def on_message(message):
 
     if message.content == "!help":
         msg = '''
+            AVAILABLE COMMANDS:
             !generatesikh -- Generate random Sikh name
             !lastmessage -- Returns user's last message
             !markovmessage -- Generates random sentence from past messages
