@@ -1,3 +1,4 @@
+from ocr import rotationCorrect, prepareText, printText
 import discord
 import re
 import subprocess
@@ -9,6 +10,9 @@ import asyncio
 import sikhgenerator
 import googletrans
 import praw
+import numpy as np
+import pytesseract
+import cv2
 
 TOKEN = open("privatekey.txt", "r").read().split("\n")[0]
 CLIENT_ID, CLIENT_SECRET, USER_AGENT = tuple(filter(None, open("reddit.txt", "r").read().split("\n")))
@@ -153,6 +157,12 @@ async def on_message(message):
             except:
                 msg = "ERROR"
             await client.send_message(message.channel, msg)
+
+    if message.content.startswith("!ocr"):
+        cachedimage = 'cache/' + os.listdir("./cache")[0]
+        image = cv2.imread(cachedimage)
+        msg = rotationCorrect(image)
+        await client.send_message(message.channel, msg)
 
     if message.content.startswith("!anime"):
         gen = reddit.subreddit('animegifs').top()
