@@ -1,3 +1,4 @@
 discord>=0.16.12
 googletrans>=2.2.0
 aiohttp>=1.0.5
+praw>=5.4.0

@@ -1,6 +1,4 @@
-from googletrans import Translator
 import discord
-import sikhgenerator
 import re
 import subprocess
 import os
@@ -8,11 +6,17 @@ import random
 import aiohttp
 import json
 import asyncio
+import sikhgenerator
+import googletrans
+import praw
 
 TOKEN = open("privatekey.txt", "r").read().split("\n")[0]
+CLIENT_ID, CLIENT_SECRET, USER_AGENT = tuple(filter(None, open("reddit.txt", "r").read().split("\n")))
 
 client = discord.Client()
-translator = Translator() # Uses Google trans, may switch to Apertium
+translator = googletrans.Translator() # Uses Google trans, may switch to Apertium
+
+reddit = praw.Reddit(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, user_agent=USER_AGENT)
 
 messages = dict()
 markov = list()
@@ -54,8 +58,6 @@ def mark():
 
 @client.event
 async def on_message(message):
-    # we do not want the bot to reply to itself
-
     print(message.content)
     print(type(message.content))
     if message.attachments and not message.author.bot:
@@ -78,10 +80,6 @@ async def on_message(message):
 
     if message.author == client.user:
         return
-
-    if message.content.startswith('suck my ass'):
-        msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
 
     if message.content.startswith('!generatesikh'):
         msg = sikhgenerator.make_name().format(message)
@@ -151,14 +149,22 @@ async def on_message(message):
                         dest=langs[cmd[2].title()]).text
                 print(msg)
             except:
-                msg = "ERROR: src/dest language unavailable"
-                msg = translator.translate('안녕하세요'.lower(), src='ko', dest='ja').text
+                msg = "ERROR"
             await client.send_message(message.channel, msg)
 
+    if message.content.startswith("!anime"):
+        gen = reddit.subreddit('animegifs').top()
+        for _ in range(0, random.randint(1, 100)):
+            submission = next(x for x in gen if not x.stickied)
+        await client.send_message(message.channel, submission.url)
 
     if message.content.startswith("!cachedimage"):
         await client.send_file(message.channel, \
                 'cache/' + os.listdir("./cache")[0])
+
+    if message.content.startswith('suck my ass'):
+        msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
+        await client.send_message(message.channel, msg)
 
     messages["{0.author}".format(message)] = message.content
     contents = message.content.lower().replace('\n', ' ')
