@@ -110,6 +110,7 @@ async def on_message(message):
             !seamcarve [numPixels] [horizontal | yN] -- Seamcarves last image numPixels
             !translate [source] [dest] [message] -- Translates [message] from [source] to [dest] language
             !cachedimage -- Returns last (cached) image
+            !anime -- generates random anime gif from Reddit
             '''
         await client.send_message(message.channel, msg)
 
