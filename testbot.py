@@ -167,6 +167,18 @@ async def on_message(message):
         msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
 
+    if message.content.startswith('im not ok'):
+        msg = 'pikachu rikachu pee pee in the window {0.author.mention}'.format(message)
+        await client.send_message(message.channel, msg)
+
+    if message.content.startswith("!thanos"):
+        a = random.randint(0, 1)
+    if random.randint(0, 1) % 2 == 0:
+        msg = "You were spared by Thanos."
+    else:
+        msg = "You were killed by Thanos."
+        await client.send_message(message.channel, msg)
+
     messages["{0.author}".format(message)] = message.content
     contents = message.content.lower().replace('\n', ' ')
     contents = re.sub('([a-zA-Z])', \
