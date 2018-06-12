@@ -6,6 +6,7 @@ Our Discord bot.
 - Sikh name generation
 - Image seamcarving 
 - Sentence translation
+- OCR
 
 ### Goals
 - Message summarization

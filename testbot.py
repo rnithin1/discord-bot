@@ -116,6 +116,7 @@ async def on_message(message):
             !cachedimage -- Returns last (cached) image
             !anime -- Posts random anime gif from Reddit
             !thanos -- Were you slain for the good of the Universe? I call that mercy.
+            !ocr -- Tries to read text from image provided
             '''
         await client.send_message(message.channel, msg)
 
