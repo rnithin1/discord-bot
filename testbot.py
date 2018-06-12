@@ -110,7 +110,8 @@ async def on_message(message):
             !seamcarve [numPixels] [horizontal | yN] -- Seamcarves last image numPixels
             !translate [source] [dest] [message] -- Translates [message] from [source] to [dest] language
             !cachedimage -- Returns last (cached) image
-            !anime -- generates random anime gif from Reddit
+            !anime -- Posts random anime gif from Reddit
+            !thanos -- Were you slain for the good of the Universe? I call that mercy.
             '''
         await client.send_message(message.channel, msg)
 
@@ -172,11 +173,10 @@ async def on_message(message):
         await client.send_message(message.channel, msg)
 
     if message.content.startswith("!thanos"):
-        a = random.randint(0, 1)
-    if random.randint(0, 1) % 2 == 0:
-        msg = "You were spared by Thanos."
-    else:
-        msg = "You were killed by Thanos."
+        if random.randint(0, 1) % 2 == 0:
+            msg = "You were spared by Thanos."
+        else:
+            msg = "You were slain by Thanos, for the good of the Universe."
         await client.send_message(message.channel, msg)
 
     messages["{0.author}".format(message)] = message.content
