@@ -29,8 +29,6 @@ langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
 
 def mark():
-    import numpy as np
-
     corpus = markov
 
     def make_pairs(corpus):
@@ -104,7 +102,7 @@ async def on_message(message):
         path = "./imgs/" + imgString
         await client.send_file(message.channel, path)
 
-    if message.content == "!help":
+    if message.content == "%help":
         msg = '''
             AVAILABLE COMMANDS:
             !generatesikh -- Generate random Sikh name
@@ -161,9 +159,15 @@ async def on_message(message):
 
     if message.content.startswith("!ocr"):
         cachedimage = 'cache/' + os.listdir("./cache")[0]
-        image = cv2.imread(cachedimage)
-        msg = rotationCorrect(image)
-        await client.send_message(message.channel, msg)
+        try:
+            image = cv2.imread(cachedimage)
+            msg = rotationCorrect(image)
+            if not msg:
+                msg = "ERROR: Could not read text from image"
+            await client.send_message(message.channel, msg)
+        except:
+            msg = "Oopsy woopsy! We made a fucky wucky! :3"
+            await client.send_message(message.channel, msg)
 
     if message.content.startswith("!anime"):
         gen = reddit.subreddit('animegifs').top()

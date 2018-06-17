@@ -27,7 +27,7 @@ ca
 ch
 ce
 ny
-zh
+zh-CN
 cv
 kw
 co
