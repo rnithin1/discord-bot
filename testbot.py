@@ -22,11 +22,16 @@ translator = googletrans.Translator() # Uses Google trans, may switch to Apertiu
 
 reddit = praw.Reddit(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, user_agent=USER_AGENT)
 
+repeated_post = ""
 messages = dict()
+custom_commands = dict()
 markov = list()
+cached = list()
 extensions = ['png', 'jpg', 'jpeg', 'gif']
 langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
+commands = ['!generatesikh', '!lastmessage', '!markovmessage', '!randomimage', '!help', '!seamcarve', \
+        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand']
 
 def mark():
     corpus = markov
@@ -60,7 +65,9 @@ def mark():
 
 @client.event
 async def on_message(message):
+    global repeated_post
     print(message.content)
+    print(message.channel)
     print(type(message.content))
     if message.attachments and not message.author.bot:
         print('{0.author}'.format(message))
@@ -92,9 +99,12 @@ async def on_message(message):
         await client.send_message(message.channel, msg)
 
     if message.content.startswith('!markovmessage'):
-        msg = mark()
-        msg = msg + "."
-        await client.send_message(message.channel, msg)
+        if len(markov) < 40:
+            await client.send_message(message.channel, "ERROR: Not enough messages cached")
+        else:
+            msg = mark()
+            msg = msg + "."
+            await client.send_message(message.channel, msg)
 
     if message.content == "!randomimage":
         imgList = os.listdir("./imgs")
@@ -115,6 +125,7 @@ async def on_message(message):
             !anime -- Posts random anime gif from Reddit
             !thanos -- Were you slain for the good of the Universe? I call that mercy.
             !ocr -- Tries to read text from image provided
+            !customcommand -- Creates a custom command
             '''
         await client.send_message(message.channel, msg)
 
@@ -194,14 +205,47 @@ async def on_message(message):
             msg = "You were slain by Thanos, for the good of the Universe."
         await client.send_message(message.channel, msg)
 
-    messages["{0.author}".format(message)] = message.content
-    contents = message.content.lower().replace('\n', ' ')
-    contents = re.sub('([a-zA-Z])', \
-            lambda x: x.groups()[0].upper(), contents, 1)
-    contents = re.sub(" \d+", " ", contents)
+    if message.content.startswith("!customcommand"):
+        if len(message.content.split(" ")) >= 3:
+            msg = message.content.split(" ")
+            cmd = msg[1]
+            if cmd[0] == '!' and cmd not in commands:
+                cust = " ".join(msg[2:])
+                custom_commands[cmd] = cust
+                await client.send_message(message.channel, "'{}' -> '{}' saved as a custom command!" \
+                        .format(cmd, cust))
+            else:
+                await client.send_message(message.channel, "Usage: !customcommand ![custom] [message]")
 
-    if len(contents) >= 5:
+        else:
+            await client.send_message(message.channel, "Usage: !customcommand ![custom] [message]")
+
+    if message.content in custom_commands.keys():
+        await client.send_message(message.channel, custom_commands \
+                [message.content])
+
+    if not message.author.bot:
+        messages["{0.author}".format(message)] = message.content
+        contents = message.content.lower().replace('\n', ' ')
+        contents = re.sub('([a-zA-Z])', \
+                lambda x: x.groups()[0].upper(), contents, 1)
+        contents = re.sub(" \d+", " ", contents)
+
+    else:
+        contents = ""
+
+    if len(contents) >= 5 and contents[0] != "!":
         markov.extend(list(filter(None, contents.split(" "))))
+
+    cached.append(message.content)
+    print(messages)
+    print(cached)
+    sp = [x for x in messages.values() if x == message.content]
+    if len(sp) >= 2 and not message.author.bot \
+            and message.content != repeated_post \
+            and message.content[0] != "!":
+        repeated_post = message.content
+        await client.send_message(message.channel, message.content)
 
 @client.event
 async def on_ready():
