@@ -51,7 +51,7 @@ def mark():
 
     chain = [first_word]
 
-    n_words = 10
+    n_words = 15
 
     for i in range(n_words):
         chain.append(np.random.choice(word_dict[chain[-1]]))
