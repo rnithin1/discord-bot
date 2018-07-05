@@ -31,7 +31,8 @@ extensions = ['png', 'jpg', 'jpeg', 'gif']
 langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
 commands = ['!generatesikh', '!lastmessage', '!markovmessage', '!randomimage', '!help', '!seamcarve', \
-        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand']
+        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda']
+
 
 def mark():
     corpus = markov
@@ -74,8 +75,8 @@ async def on_message(message):
         print(message.attachments)
         extension = message.attachments[0]['url'].split(".")[-1]
         if extension.lower() in extensions:
-            imgList = os.listdir("./cache")[0]
             try:
+                imgList = os.listdir("./cache")[0]
                 os.remove('cache/' + imgList)
             except:
                 pass
@@ -112,7 +113,7 @@ async def on_message(message):
         path = "./imgs/" + imgString
         await client.send_file(message.channel, path)
 
-    if message.content == "%help":
+    if message.content == "!ayuda":
         msg = '''
             AVAILABLE COMMANDS:
             !generatesikh -- Generate random Sikh name
@@ -249,6 +250,7 @@ async def on_message(message):
 
 @client.event
 async def on_ready():
-    pass
+    print("Starting...")
+    await client.change_presence(game=discord.Game(name='Help: !ayuda'))
 
 client.run(TOKEN)
