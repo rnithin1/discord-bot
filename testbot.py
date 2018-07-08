@@ -62,6 +62,10 @@ def mark():
     for i in range(n_words):
         chain.append(np.random.choice(word_dict[chain[-1]]))
 
+    for i in range(len(chain) - 1):
+        if chain[i + 1].istitle():
+            chain[i] = chain[i] + "."
+
     return ' '.join(chain)
 
 @client.event
@@ -127,6 +131,7 @@ async def on_message(message):
             !thanos -- Were you slain for the good of the Universe? I call that mercy.
             !ocr -- Tries to read text from image provided
             !customcommand -- Creates a custom command
+            !listcustom -- Lists current custom commands
             '''
         await client.send_message(message.channel, msg)
 
@@ -221,6 +226,17 @@ async def on_message(message):
         else:
             await client.send_message(message.channel, "Usage: !customcommand ![custom] [message]")
 
+    if message.content.startswith("!listcustom"):
+        msg = ""
+        if custom_commands == dict():
+            await client.send_message(message.channel, "No custom commands!")
+        else:
+            keys = custom_commands.keys()
+            values = custom_commands.values()
+            for k, v in zip(keys, values):
+                msg += k + ' -> ' + v + '\n'
+            await client.send_message(message.channel, msg)
+
     if message.content in custom_commands.keys():
         await client.send_message(message.channel, custom_commands \
                 [message.content])
@@ -242,7 +258,7 @@ async def on_message(message):
     print(messages)
     print(cached)
     sp = [x for x in messages.values() if x == message.content]
-    if len(sp) >= 2 and not message.author.bot \
+    if len(sp) >= 3 and not message.author.bot \
             and message.content != repeated_post \
             and message.content[0] != "!":
         repeated_post = message.content
