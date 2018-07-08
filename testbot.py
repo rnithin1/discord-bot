@@ -22,11 +22,11 @@ translator = googletrans.Translator() # Uses Google trans, may switch to Apertiu
 
 reddit = praw.Reddit(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, user_agent=USER_AGENT)
 
-repeated_post = ""
+repeated_post = dict({0 : 0})
 messages = dict()
 custom_commands = dict()
-markov = list()
-cached = list()
+markov = dict()
+cached = dict()
 extensions = ['png', 'jpg', 'jpeg', 'gif']
 langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
@@ -34,8 +34,8 @@ commands = ['!generatesikh', '!lastmessage', '!markovmessage', '!randomimage', '
         '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda']
 
 
-def mark():
-    corpus = markov
+def mark(server):
+    corpus = markov[server]
 
     def make_pairs(corpus):
         for i in range(len(corpus)-1):
@@ -63,7 +63,7 @@ def mark():
         chain.append(np.random.choice(word_dict[chain[-1]]))
 
     for i in range(len(chain) - 1):
-        if chain[i + 1].istitle():
+        if chain[i + 1].istitle() and chain[i][-1].isalnum():
             chain[i] = chain[i] + "."
 
     return ' '.join(chain)
@@ -72,24 +72,32 @@ def mark():
 async def on_message(message):
     global repeated_post
     print(message.content)
-    print(message.channel)
+    print(message.server.id)
     print(type(message.content))
     if message.attachments and not message.author.bot:
         print('{0.author}'.format(message))
         print(message.attachments)
         extension = message.attachments[0]['url'].split(".")[-1]
+        directory = "./cache"
+        if "cache" not in os.listdir("."):
+            os.makedirs("cache")
+
         if extension.lower() in extensions:
-            try:
-                imgList = os.listdir("./cache")[0]
-                os.remove('cache/' + imgList)
-            except:
-                pass
+            if str(message.server.id) not in os.listdir(directory):
+                os.makedirs(directory + "/" + message.server.id) 
+
+            directory += '/' + message.server.id
+            if os.listdir(directory) == list():
+                open(directory + '/cache.jpg', 'a').close() 
+
+            os.remove(directory + '/' + os.listdir(directory)[0])
+
             with aiohttp.ClientSession() as session:
                 async with session.get(message.attachments[0]['url']) as r:
                     print(dir(r))
                     data = await r.read()
                     print(data)
-                    with open("cache/cache." + extension, "wb") as f:
+                    with open(directory + "/cache." + extension, "wb") as f:
                         f.write(data)
 
     if message.author == client.user:
@@ -99,15 +107,13 @@ async def on_message(message):
         msg = sikhgenerator.make_name().format(message)
         await client.send_message(message.channel, msg)
 
-    if message.content.startswith('!lastmessage'):
-        msg = '{0.author}, your last message was {1}!'.format(message, messages["{0.author}".format(message)])
-        await client.send_message(message.channel, msg)
-
     if message.content.startswith('!markovmessage'):
-        if len(markov) < 40:
+        if message.server.id not in markov.keys():
+            markov[message.server.id] = list()
+        if len(markov[message.server.id]) < 40:
             await client.send_message(message.channel, "ERROR: Not enough messages cached")
         else:
-            msg = mark()
+            msg = mark(message.server.id)
             msg = msg + "."
             await client.send_message(message.channel, msg)
 
@@ -121,7 +127,6 @@ async def on_message(message):
         msg = '''
             AVAILABLE COMMANDS:
             !generatesikh -- Generate random Sikh name
-            !lastmessage -- Returns user's last message
             !markovmessage -- Generates random sentence from past messages
             !randomimage -- Returns a not-so-random image
             !seamcarve [numPixels] [horizontal | yN] -- Seamcarves last image numPixels
@@ -135,7 +140,6 @@ async def on_message(message):
             '''
         await client.send_message(message.channel, msg)
 
-
     if message.content.startswith("!seamcarve"):
         cmd = message.content.split(" ")
         if len(cmd) != 3 or not cmd[1].isdigit() \
@@ -144,8 +148,9 @@ async def on_message(message):
             await client.send_message(message.channel, msg)
         else:
             await client.send_message(message.channel, "Calculating...")
-            subprocess.call(['java', '-jar', 'seamcarve.jar', 'cache/'\
-                    + os.listdir("./cache")[0], cmd[1], cmd[2]])
+            subprocess.call(['java', '-jar', 'seamcarve.jar', 'cache/' \
+                    + message.server.id + '/' \
+                    + os.listdir("./cache/" + message.server.id)[0], cmd[1], cmd[2]])
             await client.send_file(message.channel, "output.png")
 
     if message.content.startswith("!translate"):
@@ -175,7 +180,8 @@ async def on_message(message):
             await client.send_message(message.channel, msg)
 
     if message.content.startswith("!ocr"):
-        cachedimage = 'cache/' + os.listdir("./cache")[0]
+        cachedimage = 'cache/' + message.server.id + os.listdir("./cache/" \
+                + message.server.id)[0]
         try:
             image = cv2.imread(cachedimage)
             msg = rotationCorrect(image)
@@ -194,7 +200,8 @@ async def on_message(message):
 
     if message.content.startswith("!cachedimage"):
         await client.send_file(message.channel, \
-                'cache/' + os.listdir("./cache")[0])
+                'cache/' + message.server.id + '/' \
+                + os.listdir("./cache/" + message.server.id)[0])
 
     if message.content.startswith('suck my ass'):
         msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
@@ -217,7 +224,9 @@ async def on_message(message):
             cmd = msg[1]
             if cmd[0] == '!' and cmd not in commands:
                 cust = " ".join(msg[2:])
-                custom_commands[cmd] = cust
+                if message.server.id not in custom_commands.keys():
+                    custom_commands[message.server.id] = dict()
+                custom_commands[message.server.id][cmd] = cust
                 await client.send_message(message.channel, "'{}' -> '{}' saved as a custom command!" \
                         .format(cmd, cust))
             else:
@@ -228,21 +237,24 @@ async def on_message(message):
 
     if message.content.startswith("!listcustom"):
         msg = ""
-        if custom_commands == dict():
+        if message.server.id not in custom_commands.keys():
             await client.send_message(message.channel, "No custom commands!")
         else:
-            keys = custom_commands.keys()
-            values = custom_commands.values()
+            keys = custom_commands[message.server.id].keys()
+            values = custom_commands[message.server.id].values()
             for k, v in zip(keys, values):
                 msg += k + ' -> ' + v + '\n'
             await client.send_message(message.channel, msg)
 
-    if message.content in custom_commands.keys():
-        await client.send_message(message.channel, custom_commands \
-                [message.content])
+    if message.server.id in custom_commands.keys():
+        if message.content in custom_commands[message.server.id].keys():
+            await client.send_message(message.channel, custom_commands \
+                    [message.server.id][message.content])
 
     if not message.author.bot:
-        messages["{0.author}".format(message)] = message.content
+        if message.server.id not in messages.keys():
+            messages[message.server.id] = dict()
+        messages[message.server.id]["{0.author}".format(message)] = message.content
         contents = message.content.lower().replace('\n', ' ')
         contents = re.sub('([a-zA-Z])', \
                 lambda x: x.groups()[0].upper(), contents, 1)
@@ -251,17 +263,23 @@ async def on_message(message):
     else:
         contents = ""
 
-    if len(contents) >= 5 and contents[0] != "!":
-        markov.extend(list(filter(None, contents.split(" "))))
+    if message.server.id not in markov.keys():
+        markov[message.server.id] = list()
 
-    cached.append(message.content)
+    if message.server.id not in cached.keys():
+        cached[message.server.id] = list()
+
+    if len(contents) >= 5 and contents[0] != "!":
+        markov[message.server.id].extend(list(filter(None, contents.split(" "))))
+
+    cached[message.server.id].append(message.content)
     print(messages)
     print(cached)
     sp = [x for x in messages.values() if x == message.content]
     if len(sp) >= 3 and not message.author.bot \
-            and message.content != repeated_post \
-            and message.content[0] != "!":
-        repeated_post = message.content
+            and message.content != repeated_post.get(message.server.id, message.content) \
+            and message.content[0].isalnum():
+        repeated_post[message.server.id] = message.content
         await client.send_message(message.channel, message.content)
 
 @client.event
