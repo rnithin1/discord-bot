@@ -7,6 +7,7 @@ Our Discord bot.
 - Image seamcarving 
 - Sentence translation
 - OCR
+- Custom commands
 
 ### Goals
 - Message summarization
