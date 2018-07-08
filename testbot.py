@@ -275,10 +275,14 @@ async def on_message(message):
     cached[message.server.id].append(message.content)
     print(messages)
     print(cached)
-    sp = [x for x in messages.values() if x == message.content]
+    sp = [x for x in messages[message.server.id].values() \
+            if x == message.content]
+    if message.server.id not in repeated_post.keys():
+        repeated_post[message.server.id] = 0
+
     if len(sp) >= 3 and not message.author.bot \
-            and message.content != repeated_post.get(message.server.id, message.content) \
-            and message.content[0].isalnum():
+            and message.content != repeated_post.get(message.server.id, \
+            message.content) and message.content[0].isalnum():
         repeated_post[message.server.id] = message.content
         await client.send_message(message.channel, message.content)
 
