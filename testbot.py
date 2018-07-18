@@ -180,7 +180,7 @@ async def on_message(message):
             await client.send_message(message.channel, msg)
 
     if message.content.startswith("!ocr"):
-        cachedimage = 'cache/' + message.server.id + os.listdir("./cache/" \
+        cachedimage = 'cache/' + message.server.id + '/' + os.listdir("./cache/" \
                 + message.server.id)[0]
         try:
             image = cv2.imread(cachedimage)

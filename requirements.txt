@@ -1,6 +1,5 @@
 discord
 googletrans
-aiohttp
 praw
 opencv-python
 numpy
