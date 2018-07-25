@@ -31,7 +31,7 @@ extensions = ['png', 'jpg', 'jpeg', 'gif']
 langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
 commands = ['!generatesikh', '!lastmessage', '!markovmessage', '!randomimage', '!help', '!seamcarve', \
-        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda']
+        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda', '!figlet']
 
 
 def mark(server):
@@ -57,7 +57,7 @@ def mark(server):
 
     chain = [first_word]
 
-    n_words = 15
+    n_words = random.randint(10, 30)
 
     for i in range(n_words):
         chain.append(np.random.choice(word_dict[chain[-1]]))
@@ -100,8 +100,12 @@ async def on_message(message):
                     with open(directory + "/cache." + extension, "wb") as f:
                         f.write(data)
 
-    if message.author == client.user:
+    if message.author == client.user and \
+            not message.content.split(" ")[0] in commands:
         return
+
+    if message.content.split(" ")[0] in commands and message.author.bot:
+        await client.delete_message(message)
 
     if message.content.startswith('!generatesikh'):
         msg = sikhgenerator.make_name().format(message)
@@ -137,6 +141,7 @@ async def on_message(message):
             !ocr -- Tries to read text from image provided
             !customcommand -- Creates a custom command
             !listcustom -- Lists current custom commands
+            !figlet -- Figlets custom text
             '''
         await client.send_message(message.channel, msg)
 
@@ -198,12 +203,26 @@ async def on_message(message):
             submission = next(x for x in gen if not x.stickied)
         await client.send_message(message.channel, submission.url)
 
+    if message.content.startswith("!figlet"):
+        if len(message.content.split(" ")) == 1:
+            await client.send_message(message.channel, \
+                    "Usage: !figlet [text]")
+        else:
+            cmd = "echo " + " ".join(list( \
+                    map(lambda x : re.escape(x), \
+                    message.content.split(" ")[1:]))) + "|figlet"
+            ps = subprocess.Popen(cmd, shell=True, \
+                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            output = ps.communicate()[0].decode('utf-8')
+            await client.send_message(message.channel, '```' + \
+                    output + '```')
+
     if message.content.startswith("!cachedimage"):
         await client.send_file(message.channel, \
                 'cache/' + message.server.id + '/' \
                 + os.listdir("./cache/" + message.server.id)[0])
 
-    if message.content.startswith('suck my ass'):
+    if 'suck my ass' in message.content.lower():
         msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
 
@@ -246,12 +265,12 @@ async def on_message(message):
                 msg += k + ' -> ' + v + '\n'
             await client.send_message(message.channel, msg)
 
-    if message.server.id in custom_commands.keys():
-        if message.content in custom_commands[message.server.id].keys():
-            await client.send_message(message.channel, custom_commands \
-                    [message.server.id][message.content])
-
     if not message.author.bot:
+        if message.server.id in custom_commands.keys():
+            if message.content in custom_commands[message.server.id].keys():
+                await client.send_message(message.channel, custom_commands \
+                        [message.server.id][message.content])
+
         if message.server.id not in messages.keys():
             messages[message.server.id] = dict()
         messages[message.server.id]["{0.author}".format(message)] = message.content
@@ -269,7 +288,7 @@ async def on_message(message):
     if message.server.id not in cached.keys():
         cached[message.server.id] = list()
 
-    if len(contents) >= 5 and contents[0] != "!":
+    if not message.author.bot and contents[0].isalnum() and len(contents.split(" ")) >= 5 and contents[0] != "!":
         markov[message.server.id].extend(list(filter(None, contents.split(" "))))
 
     cached[message.server.id].append(message.content)
