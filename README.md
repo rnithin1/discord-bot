@@ -15,3 +15,4 @@ Our Discord bot.
 - Image/video manipulation
 - Song manipulation/covering
 - Chess
+- Latex rendering
