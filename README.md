@@ -1,5 +1,4 @@
 # Association Football
-Our Discord bot.
 
 ### Abilities
 - Markov chain sentence generation
