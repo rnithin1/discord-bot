@@ -143,6 +143,7 @@ async def on_message(message):
             !customcommand -- Creates a custom command
             !listcustom -- Lists current custom commands
             !figlet -- Figlets custom text
+            !latex -- Renders text in LaTeX
             '''
         await client.send_message(message.channel, msg)
 
