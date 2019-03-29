@@ -8,6 +8,7 @@ Our Discord bot.
 - Sentence translation
 - OCR
 - Custom commands
+- Latex rendering
 
 ### Goals
 - Message summarization
@@ -15,4 +16,3 @@ Our Discord bot.
 - Image/video manipulation
 - Song manipulation/covering
 - Chess
-- Latex rendering

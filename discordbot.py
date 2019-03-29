@@ -1,4 +1,5 @@
 from ocr import rotationCorrect, prepareText, printText
+from cvxhull import render_latex 
 import discord
 import re
 import subprocess
@@ -31,7 +32,7 @@ extensions = ['png', 'jpg', 'jpeg', 'gif']
 langs = dict(zip(open("iso639-1-names.txt", "r").read().split("\n"), \
         open("iso639-1-codes.txt", "r").read().split("\n")))
 commands = ['!generatesikh', '!lastmessage', '!markovmessage', '!randomimage', '!help', '!seamcarve', \
-        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda', '!figlet']
+        '!translate', '!ocr', '!anime', '!cachedimage', '!thanos', '!customcommand', '!ayuda', '!figlet', '!latex']
 
 
 def mark(server):
@@ -221,6 +222,15 @@ async def on_message(message):
         await client.send_file(message.channel, \
                 'cache/' + message.server.id + '/' \
                 + os.listdir("./cache/" + message.server.id)[0])
+
+    if message.content.startswith("!latex"):
+        if len(message.content.split(" ")) >= 2:
+            msg = message.content.split(" ")[1:]
+            render_latex(msg)
+            await client.send_file(message.channel, 'latex.png')
+
+        else:
+            await client.send_message(message.channel, "Usage: !latex [message $math mode$ message]")
 
     if 'suck my ass' in message.content.lower():
         msg = 'fo shizzle my nizzle {0.author.mention}'.format(message)
